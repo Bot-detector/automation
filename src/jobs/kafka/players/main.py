@@ -2,7 +2,7 @@ import asyncio
 import json
 import logging
 from asyncio import Queue
-from datetime import datetime
+from datetime import datetime, timedelta
 from time import time
 from typing import Any
 
@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 APPCONFIG = config.AppConfig()
 
 
-async def check_total_consumer_lag(consumer:AIOKafkaConsumer, topic: str):
+async def check_total_consumer_lag(consumer: AIOKafkaConsumer, topic: str):
     total_lag = 0
 
     # Get the list of partitions for the topic
@@ -25,16 +25,16 @@ async def check_total_consumer_lag(consumer:AIOKafkaConsumer, topic: str):
     if partitions is None:
         logger.warning("partitions is none")
         return 0
-    
+
     for partition in partitions:
         tp = TopicPartition(topic, partition)
-        
+
         # Get the last offset committed by the consumer
         committed = await consumer.committed(tp)
-        
+
         # Get the latest offset in the topic
         end_offset = await consumer.end_offsets([tp])
-        
+
         # Calculate the lag for this partition
         lag = end_offset[tp] - committed
 
@@ -42,6 +42,7 @@ async def check_total_consumer_lag(consumer:AIOKafkaConsumer, topic: str):
         total_lag += lag
 
     return total_lag
+
 
 async def kafka_consumer(topic: str, group: str):
     consumer = AIOKafkaConsumer(
@@ -53,6 +54,7 @@ async def kafka_consumer(topic: str, group: str):
     )
     await consumer.start()
     return consumer
+
 
 async def kafka_producer():
     producer = AIOKafkaProducer(
@@ -97,7 +99,29 @@ def is_today(updated_at: str):
     return date == today
 
 
-async def parse_data(players: list[dict]) -> tuple[list[Player], int]:
+def in_date_range(date: str, delta_days: int) -> bool:
+    """
+    Returns true if the given date is between now and delta_days in the past.
+
+    :param date: Date string in the format "%Y-%m-%dT%H:%M:%S".
+    :param delta_days: Number of days in the past to include in the range.
+    :return: True if the date is within the range, False otherwise.
+    """
+    if date is None:
+        return False
+
+    try:
+        _date = datetime.strptime(date, "%Y-%m-%dT%H:%M:%S").date()
+    except ValueError:
+        return False
+
+    today = datetime.now().date()
+    date_limit = today - timedelta(days=delta_days)
+
+    return date_limit <= _date <= today
+
+
+async def parse_data(players: list[dict], delta_days: int) -> tuple[list[Player], int]:
     players: list[Player] = [Player(**player) for player in players]
     max_id = max([p.id for p in players])
 
@@ -111,7 +135,7 @@ async def parse_data(players: list[dict]) -> tuple[list[Player], int]:
     players = [
         player
         for player in players
-        if len(player.name) < 13 and not is_today(player.updated_at)
+        if len(player.name) < 13 and not in_date_range(player.updated_at, delta_days)
     ]
     return players, max_id
 
@@ -136,7 +160,7 @@ async def get_request(
     return data, error
 
 
-async def get_data(receive_queue: Queue, consumer:AIOKafkaConsumer):
+async def get_data(receive_queue: Queue, consumer: AIOKafkaConsumer):
     last_day = datetime.now().date()
     max_id = 0
     params = {
@@ -147,6 +171,7 @@ async def get_data(receive_queue: Queue, consumer:AIOKafkaConsumer):
     headers = {"token": APPCONFIG.API_TOKEN}
     url = f"{APPCONFIG.ENDPOINT}/v2/player"
 
+    delta_days = 7
     while True:
         today = datetime.now().date()
 
@@ -159,7 +184,6 @@ async def get_data(receive_queue: Queue, consumer:AIOKafkaConsumer):
 
         players, error = await get_request(url=url, params=params, headers=headers)
 
-
         if error is not None:
             sleep_time = 30
             logger.info(f"sleeping {sleep_time}")
@@ -168,7 +192,7 @@ async def get_data(receive_queue: Queue, consumer:AIOKafkaConsumer):
 
         len_players = len(players)
 
-        players, max_id = await parse_data(players=players)
+        players, max_id = await parse_data(players=players, delta_days=delta_days)
         logger.info(
             {
                 "received": len_players,
@@ -187,7 +211,11 @@ async def get_data(receive_queue: Queue, consumer:AIOKafkaConsumer):
             params["player_id"] = 0
             last_day = today
 
-        if len_players < APPCONFIG.BATCH_SIZE:
+        if len_players < APPCONFIG.BATCH_SIZE and delta_days > 1:
+            delta_days = delta_days - 1
+            params["player_id"] = 0
+            logger.info(f"reducing delta_days to {delta_days} days")
+        elif len_players < APPCONFIG.BATCH_SIZE and delta_days <= 1:
             sleep_time = 300
             logger.info(f"Received {len_players}, sleeping: {sleep_time}")
             await asyncio.sleep(sleep_time)
