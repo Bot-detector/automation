@@ -8,6 +8,7 @@ from typing import Any
 
 import aiohttp
 from aiokafka import AIOKafkaConsumer, AIOKafkaProducer, TopicPartition
+
 from config import config
 
 from .models import Player
@@ -169,7 +170,7 @@ async def get_data(receive_queue: Queue, consumer: AIOKafkaConsumer):
         "greater_than": 1,
     }
     headers = {"token": APPCONFIG.API_TOKEN}
-    url = f"{APPCONFIG.ENDPOINT}/v2/player"
+    url = f"{APPCONFIG.ENDPOINT}/v3/player"
 
     delta_days = 7
     while True:
