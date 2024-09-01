@@ -170,7 +170,7 @@ async def get_data(receive_queue: Queue, consumer: AIOKafkaConsumer):
         "greater_than": 1,
     }
     headers = {"token": APPCONFIG.API_TOKEN}
-    url = f"{APPCONFIG.ENDPOINT}/v3/player"
+    url = f"{APPCONFIG.ENDPOINT}/v2/player"
 
     delta_days = 7
     while True:
