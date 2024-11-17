@@ -59,7 +59,3 @@ def tipoff_bots() -> None:
 
     call_webhook(path=PATH_TO_CSV_FILE, url=config.PATRON_WEBHOOK)
     return
-
-
-if __name__ == "__main__":
-    tipoff_bots()

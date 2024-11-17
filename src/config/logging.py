@@ -2,36 +2,32 @@ import json
 import logging
 import sys
 
-# setup logging
-file_handler = logging.FileHandler(filename="./error.log", mode="a")
-stream_handler = logging.StreamHandler(sys.stdout)
-# # log formatting
-formatter = logging.Formatter(
-    json.dumps(
-        {
-            "ts": "%(asctime)s",
-            "name": "%(name)s",
-            "function": "%(funcName)s",
-            "level": "%(levelname)s",
-            "msg": "%(message)s",
+
+# Configure JSON logging
+class JsonFormatter(logging.Formatter):
+    def format(self, record):
+        log_record = {
+            "ts": self.formatTime(record, self.datefmt),
+            "lvl": record.levelname,
+            "module": record.module,
+            "funcName": record.funcName,
+            "lineNo": record.lineno,
+            "msg": record.getMessage(),
         }
-    )
-)
+        if record.exc_info:
+            log_record["exception"] = self.formatException(record.exc_info)
+        return json.dumps(log_record)
 
 
-file_handler.setFormatter(formatter)
-stream_handler.setFormatter(formatter)
+class IgnoreSpecificWarnings(logging.Filter):
+    def filter(self, record):
+        # Return False to filter out messages containing "Unknown table"
+        return "Unknown table" not in record.getMessage()
 
-handlers = [
-    # file_handler,
-    stream_handler
-]
 
-logging.basicConfig(level=logging.DEBUG, handlers=handlers)
+# Set up the logger
+handler = logging.StreamHandler(sys.stdout)
+handler.setFormatter(JsonFormatter())
 
-logging.getLogger("mysql.connector.connection").setLevel(logging.WARNING)
-logging.getLogger("urllib3.connectionpool").setLevel(logging.WARNING)
-logging.getLogger("requests_oauthlib").setLevel(logging.WARNING)
-logging.getLogger("oauthlib").setLevel(logging.WARNING)
-logging.getLogger("discord.webhook.sync").setLevel(logging.WARNING)
-logging.getLogger("aiokafka").setLevel(logging.WARNING)
+logging.basicConfig(level=logging.INFO, handlers=[handler])
+logging.getLogger("asyncmy").addFilter(IgnoreSpecificWarnings())
