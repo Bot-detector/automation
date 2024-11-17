@@ -1,3 +1,3 @@
 from . import logging
 
-logging.handlers
+__all__ = ["logging"]

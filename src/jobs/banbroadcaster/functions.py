@@ -2,11 +2,13 @@ import logging
 import operator
 import time
 from collections import namedtuple
-from datetime import datetime
+
+# from datetime import datetime
 from typing import List
 
 import mysql.connector
-import tweepy
+
+# import tweepy
 from discord_webhook import DiscordWebhook
 from discord_webhook.webhook import DiscordEmbed
 
@@ -16,11 +18,11 @@ from . import queries
 
 logger = logging.getLogger(__name__)
 
-AUTH = tweepy.OAuthHandler(
-    consumer_key=config.CONSUMER_KEY, consumer_secret=config.CONSUMER_SECRET
-)
-AUTH.set_access_token(key=config.ACCESS_TOKEN, secret=config.ACCESS_TOKEN_SECRET)
-TWITTER_API = tweepy.API(AUTH, wait_on_rate_limit=True)
+# AUTH = tweepy.OAuthHandler(
+#     consumer_key=config.CONSUMER_KEY, consumer_secret=config.CONSUMER_SECRET
+# )
+# AUTH.set_access_token(key=config.ACCESS_TOKEN, secret=config.ACCESS_TOKEN_SECRET)
+# TWITTER_API = tweepy.API(AUTH, wait_on_rate_limit=True)
 
 
 config_players = {
@@ -175,57 +177,57 @@ def broadcast_names(names_list: List[str]):
         time.sleep(5)
 
 
-def post_bans_tweet(num_bans: int):
-    logger.debug("Posting Ban Tweet")
-    msg = f"BANS ALERT - {datetime.now().strftime('%d-%m-%Y')}: {num_bans:,d} accounts our system has detected as bots have been banned in the past 24 hours."
-    TWITTER_API.update_status(msg)
+# def post_bans_tweet(num_bans: int):
+#     logger.debug("Posting Ban Tweet")
+#     msg = f"BANS ALERT - {datetime.now().strftime('%d-%m-%Y')}: {num_bans:,d} accounts our system has detected as bots have been banned in the past 24 hours."
+#     TWITTER_API.update_status(msg)
 
 
-def post_breakdown_tweets(predictions: List[str]):
-    logger.debug("Posting Breakdown Tweet")
-    tweets = generate_breakdown_tweets(predictions)
+# def post_breakdown_tweets(predictions: List[str]):
+#     logger.debug("Posting Breakdown Tweet")
+#     tweets = generate_breakdown_tweets(predictions)
 
-    if len(tweets) == 0:
-        return
+#     if len(tweets) == 0:
+#         return
 
-    previous_status = None
+#     previous_status = None
 
-    for i, tweet in enumerate(tweets):
-        tweet += f"({i+1}/{len(tweets)})"
+#     for i, tweet in enumerate(tweets):
+#         tweet += f"({i+1}/{len(tweets)})"
 
-        if i == 0:
-            previous_status = TWITTER_API.update_status(tweet)
-        else:
-            previous_status = TWITTER_API.update_status(
-                tweet, in_reply_to_status_id=previous_status.id
-            )
+#         if i == 0:
+#             previous_status = TWITTER_API.update_status(tweet)
+#         else:
+#             previous_status = TWITTER_API.update_status(
+#                 tweet, in_reply_to_status_id=previous_status.id
+#             )
 
-        time.sleep(3)
+#         time.sleep(3)
 
-    return
+#     return
 
 
-def generate_breakdown_tweets(predictions: List[str]):
-    logger.info("Generating Breakdown Tweet")
-    predictions_groupings = group_predictions(predictions)
+# def generate_breakdown_tweets(predictions: List[str]):
+#     logger.info("Generating Breakdown Tweet")
+#     predictions_groupings = group_predictions(predictions)
 
-    tweets = []
+#     tweets = []
 
-    current_tweet = "Bans by Category:\n"
+#     current_tweet = "Bans by Category:\n"
 
-    for pred, count in predictions_groupings.items():
-        pred_string = f"{pred}: {count}\n"
+#     for pred, count in predictions_groupings.items():
+#         pred_string = f"{pred}: {count}\n"
 
-        if (len(current_tweet) + len(pred_string)) >= 240:
-            tweets.append(current_tweet)
-            current_tweet = pred_string
-        else:
-            current_tweet += pred_string
+#         if (len(current_tweet) + len(pred_string)) >= 240:
+#             tweets.append(current_tweet)
+#             current_tweet = pred_string
+#         else:
+#             current_tweet += pred_string
 
-    # Grab the leftovers!
-    tweets.append(current_tweet)
+#     # Grab the leftovers!
+#     tweets.append(current_tweet)
 
-    return tweets
+#     return tweets
 
 
 def group_predictions(predictions: List[str]):
