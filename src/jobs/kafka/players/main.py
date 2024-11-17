@@ -243,4 +243,4 @@ async def main():
 
 
 def get_players_to_scrape():
-    asyncio.ensure_future(main())
+    asyncio.run(main())
