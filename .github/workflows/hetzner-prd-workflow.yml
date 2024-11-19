@@ -79,23 +79,15 @@ jobs:
           masterBranchName: develop
           createPR: true
           changes: |
-            [
-              {
-                "path": "bd-automation-prd/broadcaster-job.yaml",
-                "change": {
-                  "spec.template.spec.containers[0].image": "${{ env.REGISTRY }}:${{ steps.vars.outputs.GIT_HASH }}"
-                }
-              },
-              {
-                "path": "bd-automation-prd/kafka-job.yaml",
-                "change": {
-                  "spec.template.spec.containers[0].image": "${{ env.REGISTRY }}:${{ steps.vars.outputs.GIT_HASH }}"
-                }
-              },
-              {
-                "path": "bd-automation-prd/tipoff-job.yaml",
-                "change": {
-                  "spec.template.spec.containers[0].image": "${{ env.REGISTRY }}:${{ steps.vars.outputs.GIT_HASH }}"
-                }
+            {
+              "bd-automation-prd/broadcaster-job.yaml": {
+                "spec.template.spec.containers[0].image": "${{ env.REGISTRY }}:${{ steps.vars.outputs.GIT_HASH }}"
               }
-            ]
+              "bd-automation-prd/kafka-job.yaml": {
+                "spec.template.spec.containers[0].image": "${{ env.REGISTRY }}:${{ steps.vars.outputs.GIT_HASH }}"
+              }
+              "bd-automation-prd/tipoff-job.yaml": {
+                "spec.template.spec.containers[0].image": "${{ env.REGISTRY }}:${{ steps.vars.outputs.GIT_HASH }}"
+              }
+            }
+            
