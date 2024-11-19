@@ -38,7 +38,7 @@ multidict==6.1.0
     # via
     #   aiohttp
     #   yarl
-mysql-connector-python==8.0.33
+mysql-connector-python==9.1.0
     # via automation (pyproject.toml)
 numpy==2.1.3
     # via pandas
