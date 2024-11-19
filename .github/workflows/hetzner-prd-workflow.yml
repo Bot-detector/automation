@@ -71,15 +71,31 @@ jobs:
         uses: fjogeleit/yaml-update-action@main
         with:
           repository: Bot-detector/bot-detector-k8s
-          valueFile: ${{ env.VALUE_FILE }}
           token: "${{ secrets.HETZNER_ACTIONS_RUNNER_TOKEN }}"
           commitChange: true
-          title: "${{ env.VALUE_FILE }}_${{ steps.vars.outputs.GIT_HASH }}"
-          branch: "${{ env.VALUE_FILE }}_${{ steps.vars.outputs.GIT_HASH }}"
+          title: "automation-${{ steps.vars.outputs.GIT_HASH }}"
+          branch: "automation-${{ steps.vars.outputs.GIT_HASH }}"
           targetBranch: develop
           masterBranchName: develop
           createPR: true
           changes: |
-            {
-              "spec.template.spec.containers[0].image": "${{ env.REGISTRY }}:${{ steps.vars.outputs.GIT_HASH }}"
-            }
+            [
+              {
+                "path": "bd-automation-prd/broadcaster-job.yaml",
+                "change": {
+                  "spec.template.spec.containers[0].image": "${{ env.REGISTRY }}:${{ steps.vars.outputs.GIT_HASH }}"
+                }
+              },
+              {
+                "path": "bd-automation-prd/kafka-job.yaml",
+                "change": {
+                  "spec.template.spec.containers[0].image": "${{ env.REGISTRY }}:${{ steps.vars.outputs.GIT_HASH }}"
+                }
+              },
+              {
+                "path": "bd-automation-prd/tipoff-job.yaml",
+                "change": {
+                  "spec.template.spec.containers[0].image": "${{ env.REGISTRY }}:${{ steps.vars.outputs.GIT_HASH }}"
+                }
+              }
+            ]
