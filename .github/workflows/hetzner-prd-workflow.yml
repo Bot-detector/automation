@@ -81,13 +81,13 @@ jobs:
           changes: |
             {
               "bd-automation-prd/broadcaster-job.yaml": {
-                "spec.template.spec.containers[0].image": "${{ env.REGISTRY }}:${{ steps.vars.outputs.GIT_HASH }}"
+                "spec.jobTemplate.spec.containers[0].image": "${{ env.REGISTRY }}:${{ steps.vars.outputs.GIT_HASH }}"
               }
               "bd-automation-prd/kafka-job.yaml": {
-                "spec.template.spec.containers[0].image": "${{ env.REGISTRY }}:${{ steps.vars.outputs.GIT_HASH }}"
+                "spec.jobTemplate.spec.containers[0].image": "${{ env.REGISTRY }}:${{ steps.vars.outputs.GIT_HASH }}"
               }
               "bd-automation-prd/tipoff-job.yaml": {
-                "spec.template.spec.containers[0].image": "${{ env.REGISTRY }}:${{ steps.vars.outputs.GIT_HASH }}"
+                "spec.jobTemplate.spec.containers[0].image": "${{ env.REGISTRY }}:${{ steps.vars.outputs.GIT_HASH }}"
               }
             }
             
