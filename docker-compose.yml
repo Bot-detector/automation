@@ -57,6 +57,7 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: bd-automation
+    command: ["python", "src/main.py", "--run-kafka"]
     env_file:
       - .env
     networks:
