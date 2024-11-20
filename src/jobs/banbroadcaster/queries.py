@@ -21,16 +21,16 @@ sql_get_count_banned_real_players = """
 
 sql_get_count_banned_no_data = """
 SELECT
-    COUNT(*) as no_data_bans
-FROM Players
+    COUNT(pl.id) as no_data_bans
+FROM Players pl
 WHERE 1=1
-    AND possible_ban = 1 
-    AND confirmed_ban = 0
-    AND label_jagex = 2
-    AND id NOT IN (
+    AND pl.possible_ban = 1 
+    AND pl.confirmed_ban = 0
+    AND pl.label_jagex = 2
+    AND pl.id NOT IN (
         SELECT
-            Player_id
-        FROM playerHiscoreDataLatest
+            player_id
+        FROM scraper_data_v3
     )
 """
 
